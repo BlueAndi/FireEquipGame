@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Styles -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="./style/sticky-footer-navbar.css">
+
+        <style>
+            .bd-placeholder-img {
+                font-size: 1.125rem;
+                text-anchor: middle;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+
+            @media (min-width: 768px) {
+                .bd-placeholder-img-lg {
+                    font-size: 3.5rem;
+                }
+            }
+        </style>
+
+        <title>Fire Equipment Game</title>
+    </head>
+    <body class="d-flex flex-column h-100">
+        <header>
+            <!-- Fixed navbar -->
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <a class="navbar-brand" href="./index.html">
+                    <h5>Fire Equipment Game</h5>
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto" id="menu">
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Begin page content -->
+        <main role="main" class="flex-shrink-0">
+            <div class="container">
+                <h1 class="mt-2">Game</h1>
+                <div class="modal fade" id="infoBox" tabindex="-1" aria-labelledby="infoBoxLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="infoBoxLabel"></h5>
+                                <button type="button" class="close" id="dialogCloseX" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body" id="infoBoxMessage">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="dialogCloseButton" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="fireEquipGame" class="text-center"></div>
+                <br />
+            </div>
+        </main>
+  
+        <!-- Footer -->
+        <footer class="footer mt-auto py-3">
+            <div class="container">
+                <hr />
+                <span class="text-muted">(C) 2021 by Andreas Merkle (web@blue-andi.de)</span><br />
+                <span class="text-muted"><a href="https://github.com/BlueAndi/esp-rgb-led-matrix/blob/master/LICENSE">MIT License</a></span>
+            </div>
+        </footer>
+
+        <!-- jQuery, and Bootstrap JS bundle -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+        <!-- Menu -->
+        <script type="text/javascript" src="./js/menu.js"></script>
+        <!-- Fire Equipment Game library -->
+        <script type="text/javascript" src="./js/imageMapResizer.js"></script>
+        <script type="text/javascript" src="../../src/fireEquipGame.js"></script>
+        <!-- The game model -->
+        <script type="text/javascript" src="./js/model-demo.js"></script>
+
+        <script>
+            var gameModel   = {};
+            var game        = null;
+
+            function showDialog(title, message, isAutoClose = false) {
+                return new Promise(function(resolve, reject) {
+
+                    $("#infoBoxLabel").text(title);
+                    $("#infoBoxMessage").html(message);
+
+                    if (false === isAutoClose) {
+                        $("#dialogCloseX").removeClass("collapse");
+                        $("#dialogCloseButton").removeClass("collapse");
+                    } else {
+                        $("#dialogCloseX").addClass("collapse");
+                        $("#dialogCloseButton").addClass("collapse");
+                    }
+
+                    $("#infoBox").on("shown.bs.modal", function() { 
+                        $("#modalDialog").off("shown.bs.modal");
+                        resolve();
+                    });
+
+                    $("#infoBox").modal("show");
+                });
+            }
+
+            function hideDialog() {
+                return new Promise(function(resolve, reject) {
+
+                    $("#infoBox").on("hidden.bs.modal", function() { 
+                        $("#modalDialog").off("hidden.bs.modal");
+                        resolve();
+                    });
+
+                    $("#infoBox").modal("hide");
+                });
+            }
+
+            function loadGame(topic) {
+                showDialog("Info", "<p>Please wait, game is loading.</p>", true)
+                .then(function() {
+                    return game.selectTopic(topic);
+                })
+                .then(function() {
+                    return game.start();
+                })
+                .finally(function() {
+                    return hideDialog();
+                });
+            }
+
+            function start(id) {
+                var $container      = $("#" + id);
+                var $game           = $("<h2>")
+                                    .attr("class", "mtb-1")
+                                    .text("Information");
+                var $gameInfo       = $("<table>")
+                                    .attr("class", "table");
+                var $gameInfoBody   = $("<tbody>");
+                var $topics        = $("<h3>")
+                                    .attr("class", "mtb-1")
+                                    .text("Wähle Fahrzeug aus:");
+                var $topicList      = $("<div>")
+                                    .attr("class", "list-group");
+                var $button         = null;
+                var topics          = game.getTopics();
+                var gameInfo        = game.getInfo();
+                var index           = 0;
+
+                $($gameInfoBody).append("<tr><td><strong>Game:</strong></td><td>" + gameInfo.name + "</td></tr>");
+                $($gameInfoBody).append("<tr><td><strong>Version:</strong></td><td>" + gameInfo.version + "</td></tr>");
+                $($gameInfoBody).append("<tr><td><strong>Copyright:</strong></td><td> (c) " + gameInfo.year + " " + gameInfo.author + ", " + gameInfo.department + "</td></tr>");
+
+                $($gameInfo).append($gameInfoBody);
+
+                for(index = 0; index < topics.length; ++index) {
+
+                    $button = $("<button>")
+                                .attr("type", "button")
+                                .attr("class", "list-group-item list-group-item-action")
+                                .attr("onclick", "loadGame(\"" + topics[index] + "\")")
+                                .text(topics[index]);
+
+                    $($topicList).append($button);
+                }
+
+                $($container).append($gameInfo);
+                $($container).append($topics);
+                $($container).append($topicList);
+            }
+
+            function update(id, instance) {
+                var currentLocation = instance.getLocation();
+                var $container      = $("#" + id);
+                var $chapter        = $("<h2>")
+                                    .attr("class", "mtb-1")
+                                    .text(instance.getSelectedTopic());
+                var $itemToFind     = $("<h3>")
+                                    .attr("class", "mtb-1 text-primary")
+                                    .text("Aufgabe: Finde " + instance.getItemToFind());
+                var $image          = $("<img>")
+                                        .attr("class", "img-fluid")
+                                        .attr("usemap", "#image" + currentLocation.id)
+                                        .attr("src", currentLocation.src)
+                                        .attr("alt", currentLocation.name);
+                var $imageMap       = $("<map>")
+                                        .attr("name", "image" + currentLocation.id);
+                var $imageArea      = null;
+                var $imageText      = $("<p>")
+                                        .attr("class", "text-center")
+                                        .text(currentLocation.name);
+                var $buttonGroup    = $("<div>")
+                                        .attr("class", "btn-group")
+                                        .attr("role", "group")
+                                        .attr("aria-label", "Directions");
+                var $button         = null;
+                var index           = 0;
+                var directions      = instance.getDirections();
+
+                for(index = 0; index < directions.length; ++index) {
+
+                    $button = $("<button>")
+                                .attr("type", "button")
+                                .attr("class", "btn btn-secondary")
+                                .attr("onclick", "game.go(\"" + directions[index].refId + "\")")
+                                .text(directions[index].name);
+
+                    $($buttonGroup).append($button);
+                }
+
+                for(index = 0; index < currentLocation.areas.length; ++index) {
+
+                    $imageArea = $("<area>")
+                                .attr("alt", currentLocation.areas[index].name)
+                                .attr("title", currentLocation.areas[index].name)
+                                .attr("href", "#")
+                                .attr("coords", currentLocation.areas[index].coords)
+                                .attr("shape", currentLocation.areas[index].shape)
+                                .attr("onclick", "game.go(\"" + currentLocation.areas[index].id + "\", \"" + currentLocation.areas[index].name + "\")")
+
+                    $($imageMap).append($imageArea);
+                }
+
+                $($container).empty();
+                $($container).append($chapter);
+                $($container).append($itemToFind);
+                $($container).append($image);
+                $($container).append($imageMap);
+                $($container).append($imageText);
+                $($container).append($("<br>"));
+                $($container).append($buttonGroup);
+
+                $("map").imageMapResize();
+            }
+
+            function showSuccessMessage(id, instance) {
+                showDialog("Glückwunsch", "<p>Super, Du hast es gefunden! Weiter gehts ...</p>");
+            }
+
+            $(document).ready(function() {
+                var containerId = "fireEquipGame";
+
+                menu.create("menu");
+
+                gameModel   = createGameModel();
+                game        = new fireEquip.Game(containerId, gameModel, update, showSuccessMessage);
+
+                start(containerId);
+            });
+        </script>
+    </body>
+</html>
