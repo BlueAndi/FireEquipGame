@@ -10,7 +10,7 @@ Finding the right fire equipment fast in a fire engine is always a topic. And be
 
 Why not showing the fire engine with pictures in a web interface and asking where to find a specific equipment item? The little Fire Equipment Game Engine was born. ;-)
 
-A little [overview](https://github.com/BlueAndi/FireEquipGame/blob/main/doc/FireEquipGame.odp).
+A little concept overview: [Concept](https://github.com/BlueAndi/FireEquipGame/blob/main/doc/FireEquipGame.pdf) or use the animated LibreOffice Impress file, which is in the same folder.
 
 # Issues, Ideas And Bugs
 If you have further ideas or you found some bugs, great! Create a [issue](https://github.com/BlueAndi/FireEquipGame/issues) or if you are able and willing to fix it by yourself, clone the repository and create a pull request.
