@@ -256,9 +256,9 @@ function createGameModel() {
     creator.appendDirection(topic, "left_storage", "Öffne G3", "left_g3");
     creator.appendDirection(topic, "left_storage", "Stauchfach links innen", "left_storage_l1");
 
-    creator.appendDirection(topic, "left_g1_l1", "Zurück", "right_g1");
+    creator.appendDirection(topic, "left_g1_l1", "Zurück", "left_g1");
 
-    creator.appendDirection(topic, "left_g3_l1", "Zurück", "right_g3");
+    creator.appendDirection(topic, "left_g3_l1", "Zurück", "left_g3");
 
     creator.appendDirection(topic, "left_storage_l1", "Zurück", "left_storage");
 
