@@ -308,6 +308,8 @@ fireEquip.Game = function(id, data, updateFunc, successFunc) {
     this._selectedTopic     = null;
     this._map               = null;
     this._itemToFind        = "";
+    this._foundItems        = [];
+    this._MAX_FOUND_ITEMS   = 10;
     this._updateFunc        = null;
     this._successFunc       = null;
 
@@ -520,16 +522,29 @@ fireEquip.Game.prototype.getSelectedTopic = function() {
 fireEquip.Game.prototype.start = function() {
     return new Promise(function(resolve, reject) {
         var itemRandomIndex = 0;
-        var itemName        = this._itemToFind;
+        var nextItemFound   = false;
+        var itemName        = "";
+        var MAX_FOUND_ITEMS = (this._MAX_FOUND_ITEMS < this._foundItems.length) ? this._MAX_FOUND_ITEMS : 1;
+        var MIN_ITEMS       = 2;
     
         if (null === this._selectedTopic) {
             reject();
         } else {
-            if (2 <= this._selectedTopic.items.length) {
-    
-                while(itemName === this._itemToFind) {
+            if (MIN_ITEMS <= this._selectedTopic.items.length) {
+
+                while(false == nextItemFound) {
                     itemRandomIndex = Math.floor(Math.random() * this._selectedTopic.items.length);
                     itemName        = this._selectedTopic.items[itemRandomIndex].name;
+
+                    if (false == this._foundItems.includes(itemName)) {
+                        nextItemFound = true;
+
+                        this._foundItems.push(itemName);
+
+                        if (MAX_FOUND_ITEMS < this._foundItems.length) {
+                            this._foundItems.shift();
+                        }
+                    }
                 }
     
                 this._itemToFind = itemName;
