@@ -524,13 +524,14 @@ fireEquip.Game.prototype.start = function() {
         var itemRandomIndex = 0;
         var nextItemFound   = false;
         var itemName        = "";
-        var MAX_FOUND_ITEMS = (this._MAX_FOUND_ITEMS < this._foundItems.length) ? this._MAX_FOUND_ITEMS : 1;
+        var MAX_FOUND_ITEMS = 0;
         var MIN_ITEMS       = 2;
     
         if (null === this._selectedTopic) {
             reject();
         } else {
             if (MIN_ITEMS <= this._selectedTopic.items.length) {
+                MAX_FOUND_ITEMS = (this._MAX_FOUND_ITEMS < this._selectedTopic.items.length) ? this._MAX_FOUND_ITEMS : 1;
 
                 while(false == nextItemFound) {
                     itemRandomIndex = Math.floor(Math.random() * this._selectedTopic.items.length);
